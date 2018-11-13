@@ -4,6 +4,8 @@ import 'package:redux/redux.dart';
 import 'package:flutter_crud_redux/model/model.dart';
 import 'package:flutter_crud_redux/redux/actions.dart';
 import 'package:flutter_crud_redux/redux/reducers.dart';
+import 'package:flutter_redux_dev_tools/flutter_redux_dev_tools.dart';
+import 'package:redux_dev_tools/redux_dev_tools.dart';
 
 void main() => runApp(MyApp());
 
@@ -12,7 +14,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Store<AppState> store =
-        Store<AppState>(appStateReducer, initialState: AppState.initialState());
+        DevToolsStore<AppState>(appStateReducer, initialState: AppState.initialState());
     return StoreProvider(
       store: store,
       child: MaterialApp(
@@ -23,17 +25,17 @@ class MyApp extends StatelessWidget {
         home: StoreBuilder<AppState>(
           onInit: (store) => store.dispatch(GetItemsAction()),
           builder: (BuildContext context, Store<AppState> store) => MyHomePage(store),
-        ),
+        )
       ),
     );
   }
 }
 
 class MyHomePage extends StatelessWidget {
-  final Store<AppState> store;
+  final DevToolsStore<AppState> store;
   
   MyHomePage(this.store);
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -51,6 +53,9 @@ class MyHomePage extends StatelessWidget {
                 RemoveItemsButton(viewModel)
               ],
             ),
+      ),
+      drawer: Container(
+        child: ReduxDevTools(store),
       ),
     );
   }

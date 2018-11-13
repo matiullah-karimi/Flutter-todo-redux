@@ -21,6 +21,7 @@ dependencies:
   cupertino_icons: ^0.1.2
   flutter_redux:
   shared_preferences:
+  flutter_redux_dev_tools:
 
 dev_dependencies:
   flutter_test:
