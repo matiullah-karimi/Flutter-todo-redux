@@ -20,13 +20,20 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
-        home: MyHomePage(),
+        home: StoreBuilder<AppState>(
+          onInit: (store) => store.dispatch(GetItemsAction()),
+          builder: (BuildContext context, Store<AppState> store) => MyHomePage(store),
+        ),
       ),
     );
   }
 }
 
 class MyHomePage extends StatelessWidget {
+  final Store<AppState> store;
+  
+  MyHomePage(this.store);
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -75,7 +82,7 @@ class _AddItemWidgetState extends State<AddItemWidget> {
         child: Text('Add'),
         onPressed: () {
            widget._viewModel.onAddItem(controller.text);
-          //controller.text = '';
+           controller.text = '';
         },
       )
     ]);
