@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_crud_redux/redux/middleware.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
 import 'package:flutter_crud_redux/model/model.dart';
@@ -14,7 +15,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Store<AppState> store =
-        DevToolsStore<AppState>(appStateReducer, initialState: AppState.initialState());
+        DevToolsStore<AppState>(
+          appStateReducer,
+          initialState: AppState.initialState(),
+          middleware: appStateMiddleware());
     return StoreProvider(
       store: store,
       child: MaterialApp(
@@ -109,6 +113,12 @@ class ItemListWidget extends StatelessWidget {
                   icon: Icon(Icons.delete),
                   onPressed: () => _viewModel.onRemoveItem(item),
                 ),
+                trailing: Checkbox(
+                  value: item.completed,
+                  onChanged: (b) {
+                    _viewModel.onCompletedItem(item);
+                  },
+                ),
               ))
           .toList(),
     );
@@ -134,12 +144,14 @@ class _ViewModel {
   final Function(String) onAddItem;
   final Function(Item) onRemoveItem;
   final Function() onRemoveItems;
+  final Function(Item) onCompletedItem;
 
   _ViewModel({
     this.items,
     this.onAddItem,
     this.onRemoveItem,
-    this.onRemoveItems
+    this.onRemoveItems,
+    this.onCompletedItem
   });
 
   factory _ViewModel.create(Store<AppState> store) {
@@ -155,10 +167,16 @@ class _ViewModel {
       store.dispatch(RemoveItemsAction());
     }
 
+    _onCompletedItem(Item item) {
+      store.dispatch(ItemCompletedAction(item));
+    }
+
     return _ViewModel(
         items: store.state.items,
         onAddItem: _onAddItem,
         onRemoveItem: _onRemoveItem,
-        onRemoveItems: _onRemoveItems);
+        onRemoveItems: _onRemoveItems,
+        onCompletedItem: _onCompletedItem
+      );
   }
 }
