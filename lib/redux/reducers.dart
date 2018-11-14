@@ -13,6 +13,7 @@ Reducer<List<Item>> itemReducer = combineReducers<List<Item>> ([
   TypedReducer<List<Item>, RemoveItemsAction>(removeItemsReducer),
   TypedReducer<List<Item>, LoadedItemsAction>(loadItemsReducer),
   TypedReducer<List<Item>, ItemCompletedAction>(itemCompletedReducer),
+  TypedReducer<List<Item>, EditItemAction>(editItemReducer),
 ]);
 
 List<Item> addItemReducer(List<Item> items, AddItemAction action) {
@@ -38,6 +39,11 @@ List<Item> itemCompletedReducer(List<Item> items, ItemCompletedAction action) {
     item.copyWith(completed: !item.completed) :
     item
   ).toList();
+}
+
+List<Item> editItemReducer(List<Item> items, EditItemAction action) {
+  print(action.item.body);
+  return items.map((item) => item.id == action.item.id ? action.item : item).toList();
 }
 
 // List<Item> itemReducer (List<Item> state, action) {

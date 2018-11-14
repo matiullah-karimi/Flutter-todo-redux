@@ -14,30 +14,28 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    Store<AppState> store =
-        DevToolsStore<AppState>(
-          appStateReducer,
-          initialState: AppState.initialState(),
-          middleware: appStateMiddleware());
+    Store<AppState> store = DevToolsStore<AppState>(appStateReducer,
+        initialState: AppState.initialState(),
+        middleware: appStateMiddleware());
     return StoreProvider(
       store: store,
       child: MaterialApp(
-        title: 'Flutter Demo',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-        ),
-        home: StoreBuilder<AppState>(
-          onInit: (store) => store.dispatch(GetItemsAction()),
-          builder: (BuildContext context, Store<AppState> store) => MyHomePage(store),
-        )
-      ),
+          title: 'Flutter Demo',
+          theme: ThemeData(
+            primarySwatch: Colors.blue,
+          ),
+          home: StoreBuilder<AppState>(
+            onInit: (store) => store.dispatch(GetItemsAction()),
+            builder: (BuildContext context, Store<AppState> store) =>
+                MyHomePage(store),
+          )),
     );
   }
 }
 
 class MyHomePage extends StatelessWidget {
   final DevToolsStore<AppState> store;
-  
+
   MyHomePage(this.store);
 
   @override
@@ -90,8 +88,8 @@ class _AddItemWidgetState extends State<AddItemWidget> {
       RaisedButton(
         child: Text('Add'),
         onPressed: () {
-           widget._viewModel.onAddItem(controller.text);
-           controller.text = '';
+          widget._viewModel.onAddItem(controller.text);
+          controller.text = '';
         },
       )
     ]);
@@ -100,8 +98,12 @@ class _AddItemWidgetState extends State<AddItemWidget> {
 
 class ItemListWidget extends StatelessWidget {
   final _ViewModel _viewModel;
-  
+
   ItemListWidget(this._viewModel);
+
+  void _showOverlay(BuildContext context, Item item) {
+    Navigator.of(context).push(TutorialOverlay(item));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -119,6 +121,9 @@ class ItemListWidget extends StatelessWidget {
                     _viewModel.onCompletedItem(item);
                   },
                 ),
+                onTap: () {
+                  _showOverlay(context, item);
+                },
               ))
           .toList(),
     );
@@ -145,14 +150,15 @@ class _ViewModel {
   final Function(Item) onRemoveItem;
   final Function() onRemoveItems;
   final Function(Item) onCompletedItem;
+  final Function(Item) onEditItem;
 
-  _ViewModel({
-    this.items,
-    this.onAddItem,
-    this.onRemoveItem,
-    this.onRemoveItems,
-    this.onCompletedItem
-  });
+  _ViewModel(
+      {this.items,
+      this.onAddItem,
+      this.onRemoveItem,
+      this.onRemoveItems,
+      this.onCompletedItem,
+      this.onEditItem});
 
   factory _ViewModel.create(Store<AppState> store) {
     _onAddItem(String body) {
@@ -171,12 +177,111 @@ class _ViewModel {
       store.dispatch(ItemCompletedAction(item));
     }
 
+    _onEditItem(Item item) {
+      store.dispatch(EditItemAction(item));
+    }
+
     return _ViewModel(
         items: store.state.items,
         onAddItem: _onAddItem,
         onRemoveItem: _onRemoveItem,
         onRemoveItems: _onRemoveItems,
-        onCompletedItem: _onCompletedItem
-      );
+        onCompletedItem: _onCompletedItem,
+        onEditItem: _onEditItem);
+  }
+}
+
+class TutorialOverlay extends ModalRoute<void> {
+  final Item item;
+  TextEditingController textController = TextEditingController();
+
+  TutorialOverlay(this.item) {
+    this.textController.text = item.body;
+  }
+
+  @override
+  Duration get transitionDuration => Duration(milliseconds: 500);
+
+  @override
+  bool get opaque => false;
+
+  @override
+  bool get barrierDismissible => false;
+
+  @override
+  Color get barrierColor => Colors.black.withOpacity(0.5);
+
+  @override
+  String get barrierLabel => null;
+
+  @override
+  bool get maintainState => true;
+
+  @override
+  Widget buildPage(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+  ) {
+    // This makes sure that text and other content follows the material style
+    return Material(
+      type: MaterialType.transparency,
+      // make sure that the overlay content is not cut off
+      child: SafeArea(
+        child: _buildOverlayContent(context),
+      ),
+    );
+  }
+
+  Widget _buildOverlayContent(BuildContext context) {
+    return StoreConnector<AppState, _ViewModel>(
+        converter: (Store<AppState> store) => _ViewModel.create(store),
+        builder: (BuildContext context, _ViewModel viewModle) {
+          return Center(
+            child: Container(
+              padding: EdgeInsets.all(10.0),
+              color: Colors.white,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  TextField(
+                    controller: textController,
+                  ),
+                  Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        RaisedButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text('Dismiss'),
+                        ),
+                        SizedBox(
+                          width: 10,
+                        ),
+                        RaisedButton(
+                          onPressed: () {
+                            viewModle.onEditItem(item.copyWith(body: textController.text));
+                             Navigator.pop(context);
+                          },
+                          child: Text('Update'),
+                        ),
+                      ])
+                ],
+              ),
+            ),
+          );
+        });
+  }
+
+  @override
+  Widget buildTransitions(BuildContext context, Animation<double> animation,
+      Animation<double> secondaryAnimation, Widget child) {
+    // You can add your own animations for the overlay content
+    return FadeTransition(
+      opacity: animation,
+      child: ScaleTransition(
+        scale: animation,
+        child: child,
+      ),
+    );
   }
 }

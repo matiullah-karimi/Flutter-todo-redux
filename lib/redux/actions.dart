@@ -33,3 +33,9 @@ class ItemCompletedAction {
   
   ItemCompletedAction(this.item);
 }
+
+class EditItemAction {
+  final Item item;
+
+  EditItemAction(this.item);
+}

@@ -14,6 +14,7 @@ List<Middleware<AppState>> appStateMiddleware([AppState state]) {
     TypedMiddleware<AppState, RemoveItemAction> (saveItems),
     TypedMiddleware<AppState, RemoveItemsAction> (saveItems),
     TypedMiddleware<AppState, GetItemsAction> (loadItems),
+    TypedMiddleware<AppState, EditItemAction> (saveItems),
   ];
 }
 
