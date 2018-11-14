@@ -1,6 +1,6 @@
 # flutter_crud_redux
 
-A new Flutter project.
+A todo Flutter project using redux.
 
 ## Getting Started
 
